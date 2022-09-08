@@ -36,6 +36,7 @@ data class SpellCircleContext(val impetusPos: BlockPos, val aabb: AABB, val acti
         const val TAG_MAX_Z = "max_z"
         const val TAG_PLAYER_ALWAYS_IN_RANGE = "player_always_in_range"
 
+        @JvmStatic
         fun fromNBT(tag: CompoundTag): SpellCircleContext {
             val impX = tag.getInt(TAG_IMPETUS_X)
             val impY = tag.getInt(TAG_IMPETUS_Y)

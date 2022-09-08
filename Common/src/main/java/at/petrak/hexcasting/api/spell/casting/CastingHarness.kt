@@ -68,9 +68,11 @@ class CastingHarness private constructor(
     /**
      * Given a list of iotas, execute them in sequence.
      */
-    fun executeIotas(iotas: List<SpellDatum<*>>, world: ServerLevel): ControllerInfo {
-        // Initialize the continuation stack to a single top-level eval for all iotas.
-        var continuation = SpellContinuation.Done.pushFrame(ContinuationFrame.Evaluate(SpellList.LList(0, iotas)))
+    fun executeIotas(iotas: List<SpellDatum<*>>, world: ServerLevel): ControllerInfo =
+        executeSpell(SpellContinuation.Done.pushFrame(ContinuationFrame.Evaluate(SpellList.LList(0, iotas))), world)
+
+    fun executeSpell(initialFrame: SpellContinuation, world: ServerLevel): ControllerInfo {
+        var continuation = initialFrame
         // Begin aggregating info
         val info = TempControllerInfo(playSound = false, earlyExit = false)
         var lastResolutionType = ResolvedPatternType.UNRESOLVED

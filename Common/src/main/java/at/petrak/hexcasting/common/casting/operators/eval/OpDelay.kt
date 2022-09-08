@@ -6,8 +6,8 @@ import at.petrak.hexcasting.api.spell.SpellDatum
 import at.petrak.hexcasting.api.spell.casting.CastingContext
 import at.petrak.hexcasting.api.spell.casting.SpellContinuation
 
-object OpEvalDelay : Operator {
+object OpDelay : Operator {
     override fun operate(continuation: SpellContinuation, stack: MutableList<SpellDatum<*>>, local: SpellDatum<*>, ctx: CastingContext): OperationResult {
-        return OperationResult(continuation, stack, local, listOf())
+        return OperationResult(SpellContinuation.Done, stack, local, listOf())
     }
 }
