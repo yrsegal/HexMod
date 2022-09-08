@@ -7,6 +7,7 @@ import at.petrak.hexcasting.api.spell.casting.CastingHarness
 import at.petrak.hexcasting.api.spell.casting.SpellContinuation
 import at.petrak.hexcasting.xplat.IXplatAbstractions
 import kotlin.math.ceil
+import kotlin.math.max
 
 object OpDelay : Operator {
     override fun operate(continuation: SpellContinuation, stack: MutableList<SpellDatum<*>>, local: SpellDatum<*>, ctx: CastingContext): OperationResult =
@@ -16,7 +17,7 @@ object OpDelay : Operator {
         val stack = harness.stack
         val ctx = harness.ctx
 
-        val delay = stack.getChecked<Double>(stack.lastIndex).toInt()
+        val delay = max(1, stack.getChecked<Double>(stack.lastIndex).toInt())
         stack.removeLast()
 
         for (i in 0 until ceil(delay / 20.0).toInt())
