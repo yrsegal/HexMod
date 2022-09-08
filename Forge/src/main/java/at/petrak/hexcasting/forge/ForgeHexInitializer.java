@@ -21,6 +21,7 @@ import at.petrak.hexcasting.common.misc.PlayerPositionRecorder;
 import at.petrak.hexcasting.common.recipe.HexRecipeSerializers;
 import at.petrak.hexcasting.forge.cap.CapSyncers;
 import at.petrak.hexcasting.forge.cap.ForgeCapabilityHandler;
+import at.petrak.hexcasting.forge.cap.ForgeDelayedCastHandlerKt;
 import at.petrak.hexcasting.forge.datagen.HexForgeDataGenerators;
 import at.petrak.hexcasting.forge.interop.curios.CuriosApiInterop;
 import at.petrak.hexcasting.forge.interop.curios.CuriosRenderers;
@@ -171,6 +172,7 @@ public class ForgeHexInitializer {
 
         evBus.addListener((LivingEvent.LivingUpdateEvent evt) -> {
             OpFlight.INSTANCE.tickDownFlight(evt.getEntityLiving());
+            ForgeDelayedCastHandlerKt.tickDownDelayedCasts(evt.getEntityLiving());
             ItemLens.tickLens(evt.getEntityLiving());
         });
 

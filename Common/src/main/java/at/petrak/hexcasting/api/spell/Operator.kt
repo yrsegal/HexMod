@@ -2,6 +2,7 @@ package at.petrak.hexcasting.api.spell
 
 import at.petrak.hexcasting.api.PatternRegistry
 import at.petrak.hexcasting.api.spell.casting.CastingContext
+import at.petrak.hexcasting.api.spell.casting.CastingHarness
 import at.petrak.hexcasting.api.spell.casting.SpellContinuation
 import at.petrak.hexcasting.api.utils.asTranslatedComponent
 import at.petrak.hexcasting.api.utils.lightPurple
@@ -18,6 +19,12 @@ import java.text.DecimalFormat
  * Implementors MUST NOT mutate the context.
  */
 interface Operator {
+    /**
+     * For operators which need finer control over the harness.
+     */
+    fun operate(continuation: SpellContinuation, harness: CastingHarness): OperationResult =
+        operate(continuation, harness.stack.toMutableList(), harness.localIota, harness.ctx)
+
     /**
      * Operate on the stack. Return the new stack and any side effects of the cast.
      *

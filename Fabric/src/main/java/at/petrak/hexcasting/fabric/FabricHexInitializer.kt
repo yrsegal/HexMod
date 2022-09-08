@@ -16,6 +16,7 @@ import at.petrak.hexcasting.common.misc.AkashicTreeGrower
 import at.petrak.hexcasting.common.misc.Brainsweeping
 import at.petrak.hexcasting.common.misc.PlayerPositionRecorder
 import at.petrak.hexcasting.common.recipe.HexRecipeSerializers
+import at.petrak.hexcasting.fabric.cc.CCDelayedCasts
 import at.petrak.hexcasting.fabric.event.VillagerConversionCallback
 import at.petrak.hexcasting.fabric.network.FabricPacketHandler
 import at.petrak.hexcasting.fabric.recipe.FabricModConditionalIngredient
@@ -77,6 +78,7 @@ object FabricHexInitializer : ModInitializer {
         ServerTickEvents.END_WORLD_TICK.register(PlayerPositionRecorder::updateAllPlayers)
         ServerTickEvents.END_WORLD_TICK.register(ItemLens::tickAllPlayers)
         ServerTickEvents.END_WORLD_TICK.register(OpFlight::tickAllPlayers)
+        ServerTickEvents.END_WORLD_TICK.register(CCDelayedCasts::tickAllPlayers)
 
         CommandRegistrationCallback.EVENT.register { dp, _ -> HexCommands.register(dp) }
 

@@ -72,7 +72,7 @@ sealed interface ContinuationFrame {
         }
 
         override fun serializeToNBT() = NBTBuilder {
-            "type" %= "evaluate"
+            "type" %= "eval"
             "patterns" %= list.serializeToNBT()
         }
     }
@@ -190,7 +190,7 @@ sealed interface ContinuationFrame {
                     if (tag.hasList("base", Tag.TAG_COMPOUND)) SpellList.fromNBT(tag.getList("base", Tag.TAG_COMPOUND), world).toList() else null,
                     SpellList.fromNBT(tag.getList("accumulator", Tag.TAG_COMPOUND), world).toMutableList()
                 )
-                else -> Evaluate(SpellList.LList(0, listOf()));
+                else -> Evaluate(SpellList.LList(0, listOf()))
             }
         }
     }

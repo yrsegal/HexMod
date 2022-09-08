@@ -15,6 +15,7 @@ import at.petrak.hexcasting.common.casting.operators.akashic.OpAkashicWrite;
 import at.petrak.hexcasting.common.casting.operators.circles.OpCircleBounds;
 import at.petrak.hexcasting.common.casting.operators.circles.OpImpetusDir;
 import at.petrak.hexcasting.common.casting.operators.circles.OpImpetusPos;
+import at.petrak.hexcasting.common.casting.operators.eval.OpDelay;
 import at.petrak.hexcasting.common.casting.operators.eval.OpEval;
 import at.petrak.hexcasting.common.casting.operators.eval.OpForEach;
 import at.petrak.hexcasting.common.casting.operators.eval.OpHalt;
@@ -337,6 +338,9 @@ public class RegisterPatterns {
                 OpEval.INSTANCE);
             PatternRegistry.mapPattern(HexPattern.fromAngles("aqdee", HexDir.SOUTH_WEST), modLoc("halt"),
                 OpHalt.INSTANCE);
+            // heehee clock
+            PatternRegistry.mapPattern(HexPattern.fromAngles("ewdwewewewewew", HexDir.WEST), modLoc("delay"),
+                OpDelay.INSTANCE);
             PatternRegistry.mapPattern(HexPattern.fromAngles("aqqqqq", HexDir.EAST), modLoc("read"),
                 OpRead.INSTANCE);
             PatternRegistry.mapPattern(HexPattern.fromAngles("deeeee", HexDir.EAST), modLoc("write"),

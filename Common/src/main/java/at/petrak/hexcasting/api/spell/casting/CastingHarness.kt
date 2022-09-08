@@ -194,12 +194,7 @@ class CastingHarness private constructor(
             var cont2 = continuation
 
             if (!unenlightened || pattern.alwaysProcessGreatSpell) {
-                val result = pattern.operate(
-                    continuation,
-                    this.stack.toMutableList(),
-                    this.localIota,
-                    this.ctx
-                )
+                val result = pattern.operate(continuation, this)
                 cont2 = result.newContinuation
                 stack2 = result.newStack
                 this.localIota = result.newLocalIota

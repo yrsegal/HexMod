@@ -6,6 +6,7 @@ import at.petrak.hexcasting.api.addldata.ManaHolder;
 import at.petrak.hexcasting.api.misc.FrozenColorizer;
 import at.petrak.hexcasting.api.mod.HexConfig;
 import at.petrak.hexcasting.api.mod.HexItemTags;
+import at.petrak.hexcasting.api.player.DelayedCast;
 import at.petrak.hexcasting.api.player.FlightAbility;
 import at.petrak.hexcasting.api.player.Sentinel;
 import at.petrak.hexcasting.api.spell.casting.CastingHarness;
@@ -203,6 +204,12 @@ public class FabricXplatImpl implements IXplatAbstractions {
     public List<ResolvedPattern> getPatterns(ServerPlayer player) {
         var cc = HexCardinalComponents.PATTERNS.get(player);
         return cc.getPatterns();
+    }
+
+    @Override
+    public void addDelayedCast(ServerPlayer player, DelayedCast cast) {
+        var cc = HexCardinalComponents.DELAYED_CAST.get(player);
+        cc.getCasts().add(cast);
     }
 
     @Override

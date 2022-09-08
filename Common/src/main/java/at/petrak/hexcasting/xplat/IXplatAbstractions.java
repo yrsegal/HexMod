@@ -5,6 +5,7 @@ import at.petrak.hexcasting.api.addldata.DataHolder;
 import at.petrak.hexcasting.api.addldata.HexHolder;
 import at.petrak.hexcasting.api.addldata.ManaHolder;
 import at.petrak.hexcasting.api.misc.FrozenColorizer;
+import at.petrak.hexcasting.api.player.DelayedCast;
 import at.petrak.hexcasting.api.player.FlightAbility;
 import at.petrak.hexcasting.api.player.Sentinel;
 import at.petrak.hexcasting.api.spell.casting.CastingHarness;
@@ -90,6 +91,8 @@ public interface IXplatAbstractions {
     CastingHarness getHarness(ServerPlayer player, InteractionHand hand);
 
     List<ResolvedPattern> getPatterns(ServerPlayer player);
+
+    void addDelayedCast(ServerPlayer player, DelayedCast cast);
 
     void clearCastingData(ServerPlayer player);
 

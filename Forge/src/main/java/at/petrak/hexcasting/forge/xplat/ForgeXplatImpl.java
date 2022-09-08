@@ -7,6 +7,7 @@ import at.petrak.hexcasting.api.addldata.HexHolder;
 import at.petrak.hexcasting.api.addldata.ManaHolder;
 import at.petrak.hexcasting.api.misc.FrozenColorizer;
 import at.petrak.hexcasting.api.mod.HexItemTags;
+import at.petrak.hexcasting.api.player.DelayedCast;
 import at.petrak.hexcasting.api.player.FlightAbility;
 import at.petrak.hexcasting.api.player.Sentinel;
 import at.petrak.hexcasting.api.spell.casting.CastingContext;
@@ -246,6 +247,13 @@ public class ForgeXplatImpl implements IXplatAbstractions {
     }
 
     @Override
+    public void addDelayedCast(ServerPlayer player, DelayedCast cast) {
+        ListTag castsTag = player.getPersistentData().getList(TAG_DELAYED_CASTS, Tag.TAG_COMPOUND);
+        castsTag.add(cast.serializeToNBT());
+        player.getPersistentData().put(TAG_DELAYED_CASTS, castsTag);
+    }
+
+    @Override
     public void clearCastingData(ServerPlayer player) {
         player.getPersistentData().remove(TAG_HARNESS);
         player.getPersistentData().remove(TAG_PATTERNS);
@@ -474,4 +482,5 @@ public class ForgeXplatImpl implements IXplatAbstractions {
 
     public static final String TAG_HARNESS = "hexcasting:spell_harness";
     public static final String TAG_PATTERNS = "hexcasting:spell_patterns";
+    public static final String TAG_DELAYED_CASTS = "hexcasting:delayed_casts";
 }

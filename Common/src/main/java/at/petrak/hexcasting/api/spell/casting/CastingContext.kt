@@ -31,7 +31,7 @@ data class CastingContext(
 ) {
     constructor(caster: ServerPlayer, castingHand: InteractionHand) : this(caster, castingHand, null)
 
-    private var depth: Int = 0
+    var depth: Int = 0
 
     val world: ServerLevel get() = caster.getLevel()
     val otherHand: InteractionHand get() = otherHand(this.castingHand)

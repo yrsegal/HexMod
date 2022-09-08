@@ -34,6 +34,8 @@ public class HexCardinalComponents implements EntityComponentInitializer, ItemCo
         CCHarness.class);
     public static final ComponentKey<CCPatterns> PATTERNS = ComponentRegistry.getOrCreate(modLoc("patterns"),
         CCPatterns.class);
+    public static final ComponentKey<CCDelayedCasts> DELAYED_CAST = ComponentRegistry.getOrCreate(modLoc("delay"),
+        CCDelayedCasts.class);
 
     public static final ComponentKey<CCColorizer> COLORIZER = ComponentRegistry.getOrCreate(modLoc("colorizer"),
         CCColorizer.class);
@@ -53,6 +55,7 @@ public class HexCardinalComponents implements EntityComponentInitializer, ItemCo
         registry.registerFor(ServerPlayer.class, FLIGHT, CCFlight::new);
         registry.registerFor(ServerPlayer.class, HARNESS, CCHarness::new);
         registry.registerFor(ServerPlayer.class, PATTERNS, CCPatterns::new);
+        registry.registerFor(ServerPlayer.class, DELAYED_CAST, CCDelayedCasts::new);
     }
 
     @Override
