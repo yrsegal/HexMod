@@ -50,7 +50,7 @@ public class CCDelayedCasts implements Component {
         var casts = tag.getList(TAG_CASTS, Tag.TAG_COMPOUND);
         for (int i = 0; i < casts.size(); i++) {
             var cast = casts.getCompound(i);
-            delayed.add(DelayedCast.fromNBT(cast, owner));
+            delayed.add(DelayedCast.fromNBT(cast, owner, null));
         }
         delayedCasts = delayed;
     }

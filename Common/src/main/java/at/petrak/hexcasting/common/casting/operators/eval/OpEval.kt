@@ -4,6 +4,7 @@ import at.petrak.hexcasting.api.spell.*
 import at.petrak.hexcasting.api.spell.casting.CastingContext
 import at.petrak.hexcasting.api.spell.casting.ContinuationFrame
 import at.petrak.hexcasting.api.spell.casting.SpellContinuation
+import kotlin.math.max
 
 object OpEval : Operator {
     override fun operate(
@@ -12,7 +13,7 @@ object OpEval : Operator {
         local: SpellDatum<*>,
         ctx: CastingContext
     ): OperationResult {
-        stack.getChecked<Any>(stack.lastIndex) // existence check
+        stack.getChecked<Any>(max(stack.lastIndex, 0)) // existence check
         val datum = stack.removeLast()
         val instrs = evaluatable(datum, 0)
 

@@ -17,7 +17,7 @@ fun tickDownDelayedCasts(entity: LivingEntity) {
     for (cast in casts) {
         val delay = cast.asCompound.getInt(DelayedCast.TAG_TIME_LEFT)
         if (delay <= 1) {
-            val delayed = DelayedCast.fromNBT(cast.asCompound, entity)
+            val delayed = DelayedCast.fromNBT(cast.asCompound, entity, null)
             delayed.harness.executeSpell(delayed.continuation, entity.getLevel())
         } else {
             cast.asCompound.putInt(DelayedCast.TAG_TIME_LEFT, delay - 1)

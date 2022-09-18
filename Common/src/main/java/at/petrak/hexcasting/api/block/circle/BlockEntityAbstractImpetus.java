@@ -4,6 +4,7 @@ import at.petrak.hexcasting.api.block.HexBlockEntity;
 import at.petrak.hexcasting.api.misc.FrozenColorizer;
 import at.petrak.hexcasting.api.misc.ManaConstants;
 import at.petrak.hexcasting.api.mod.HexConfig;
+import at.petrak.hexcasting.api.player.DelayedCast;
 import at.petrak.hexcasting.api.spell.ParticleSpray;
 import at.petrak.hexcasting.api.spell.SpellDatum;
 import at.petrak.hexcasting.api.spell.casting.CastingContext;
@@ -14,6 +15,7 @@ import at.petrak.hexcasting.common.items.magic.ItemCreativeUnlocker;
 import at.petrak.hexcasting.common.lib.HexItems;
 import at.petrak.hexcasting.common.lib.HexSounds;
 import at.petrak.hexcasting.xplat.IXplatAbstractions;
+import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -41,6 +43,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.DecimalFormat;
@@ -54,7 +57,8 @@ public abstract class BlockEntityAbstractImpetus extends HexBlockEntity implemen
         TAG_TRACKED_BLOCKS = "tracked_blocks",
         TAG_FOUND_ALL = "found_all",
         TAG_MANA = "mana",
-        TAG_LAST_MISHAP = "last_mishap";
+        TAG_LAST_MISHAP = "last_mishap",
+        TAG_DELAYED_CASTS = "delayed";
 
     private static final DecimalFormat DUST_AMOUNT = new DecimalFormat("###,###.##");
 
@@ -70,6 +74,8 @@ public abstract class BlockEntityAbstractImpetus extends HexBlockEntity implemen
     private boolean foundAll = false;
     @Nullable
     private Component lastMishap = null;
+    @Nullable
+    private List<CompoundTag> casts = null;
 
     private static final int MAX_CAPACITY = 2_000_000_000;
 
@@ -148,6 +154,12 @@ public abstract class BlockEntityAbstractImpetus extends HexBlockEntity implemen
                 trackeds.add(NbtUtils.writeBlockPos(tracked));
             }
             tag.put(TAG_TRACKED_BLOCKS, trackeds);
+
+            if (this.casts != null) {
+                var delays = new ListTag();
+                delays.addAll(this.casts);
+                tag.put(TAG_DELAYED_CASTS, delays);
+            }
         }
 
         tag.putInt(TAG_MANA, this.mana);
@@ -173,6 +185,15 @@ public abstract class BlockEntityAbstractImpetus extends HexBlockEntity implemen
                 var pos = NbtUtils.readBlockPos((CompoundTag) tracked);
                 this.trackedBlocks.add(pos);
                 this.knownBlocks.add(pos);
+            }
+
+            this.casts = null;
+            if (tag.contains(TAG_DELAYED_CASTS, Tag.TAG_COMPOUND)) {
+                this.casts = Lists.newArrayList();
+                var delays = tag.getList(TAG_DELAYED_CASTS, Tag.TAG_COMPOUND);
+                for (var delay : delays) {
+                    casts.add((CompoundTag) delay);
+                }
             }
         } else {
             this.activator = null;
@@ -206,10 +227,50 @@ public abstract class BlockEntityAbstractImpetus extends HexBlockEntity implemen
             return;
         }
 
+        if (this.casts != null && !this.casts.isEmpty() && level instanceof ServerLevel serverLevel) {
+            var player = this.getPlayer();
+
+            if (player instanceof ServerPlayer splayer) {
+                List<CompoundTag> delayedCasts = casts;
+                casts = null;
+                var bounds = getBounds(this.trackedBlocks);
+
+                var ctx = new SpellCircleContext(this.getBlockPos(), bounds, this.activatorAlwaysInRange());
+                for (var cast : delayedCasts) {
+                    var delay = cast.getInt(DelayedCast.TAG_TIME_LEFT);
+                    if (delay <= 1) {
+                        var delayed = DelayedCast.fromNBT(cast, splayer, ctx);
+                        var info = delayed.harness().executeSpell(delayed.continuation(), serverLevel);
+
+                        this.sfx(getBlockPos(), info.getResolutionType().getSuccess(), false);
+                        if (info.getResolutionType().getSuccess()) {
+                            this.setLastMishap(null);
+                        }
+                    } else {
+                        cast.putInt(DelayedCast.TAG_TIME_LEFT, delay - 1);
+                        if (casts == null)
+                            casts = Lists.newArrayList();
+                        casts.add(cast);
+                    }
+
+                    this.setChanged();
+                }
+
+                if (casts == null || casts.isEmpty())
+                    this.stopCasting();
+                else
+                    this.level.scheduleTick(this.getBlockPos(), this.getBlockState().getBlock(), 1);
+
+                return;
+            }
+        }
+
         if (this.foundAll) {
-            this.clearEnergized();
             this.castSpell();
-            this.stopCasting();
+            if (this.casts == null || this.casts.isEmpty())
+                this.stopCasting();
+            else
+                this.level.scheduleTick(this.getBlockPos(), this.getBlockState().getBlock(), 1);
             return;
         }
 
@@ -374,6 +435,10 @@ public abstract class BlockEntityAbstractImpetus extends HexBlockEntity implemen
     }
 
     private void sfx(BlockPos pos, boolean success) {
+        sfx(pos, success, true);
+    }
+
+    private void sfx(BlockPos pos, boolean success, boolean doSoundIfSuccess) {
         Vec3 vpos;
         Vec3 vecOutDir;
 
@@ -400,6 +465,8 @@ public abstract class BlockEntityAbstractImpetus extends HexBlockEntity implemen
         var pitch = 1f;
         var sound = HexSounds.SPELL_CIRCLE_FAIL;
         if (success) {
+            if (!doSoundIfSuccess)
+                return;
             sound = HexSounds.SPELL_CIRCLE_FIND_BLOCK;
             // This is a good use of my time
             var note = this.trackedBlocks.size() - 1;
@@ -427,6 +494,7 @@ public abstract class BlockEntityAbstractImpetus extends HexBlockEntity implemen
         this.nextBlock = null;
         this.trackedBlocks = null;
         this.foundAll = false;
+        this.casts = null;
 
         // without this check, breaking the block will just immediately replace it with
         // the new unenergized state
@@ -579,5 +647,11 @@ public abstract class BlockEntityAbstractImpetus extends HexBlockEntity implemen
         if (this.mana < 0)
             return 0;
         return Math.max(0, MAX_CAPACITY - this.mana);
+    }
+
+    public void delay(@NotNull DelayedCast cast) {
+        if (casts == null)
+            casts = Lists.newArrayList();
+        casts.add(cast.serializeToNBT());
     }
 }

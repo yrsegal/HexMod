@@ -1,8 +1,11 @@
 package at.petrak.hexcasting.api.spell.casting
 
+import at.petrak.hexcasting.api.block.circle.BlockEntityAbstractImpetus
+import at.petrak.hexcasting.api.player.DelayedCast
 import at.petrak.hexcasting.api.utils.NBTBuilder
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.phys.AABB
 
 /**
@@ -22,6 +25,13 @@ data class SpellCircleContext(val impetusPos: BlockPos, val aabb: AABB, val acti
         TAG_MAX_Z %= aabb.maxZ
 
         TAG_PLAYER_ALWAYS_IN_RANGE %= activatorAlwaysInRange
+    }
+
+    fun delay(cast: DelayedCast, level: ServerLevel) {
+        val be = level.getBlockEntity(impetusPos)
+        if (be is BlockEntityAbstractImpetus) {
+            be.delay(cast)
+        }
     }
 
     companion object {

@@ -23,7 +23,10 @@ object OpDelay : Operator {
         for (i in 0 until ceil(delay / 20.0).toInt())
             ctx.incDepth()
 
-        IXplatAbstractions.INSTANCE.addDelayedCast(ctx.caster, DelayedCast(harness, continuation, delay))
+        val cast = DelayedCast(harness, continuation, delay)
+
+        harness.ctx.spellCircle?.delay(cast, ctx.world)
+            ?: IXplatAbstractions.INSTANCE.addDelayedCast(ctx.caster, cast)
         return OperationResult(SpellContinuation.Done, listOf(), SpellDatum.make(Widget.NULL), listOf())
     }
 }

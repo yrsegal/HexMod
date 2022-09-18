@@ -5,9 +5,9 @@ import at.petrak.hexcasting.api.spell.casting.CastingHarness;
 import at.petrak.hexcasting.api.spell.casting.SpellCircleContext;
 import at.petrak.hexcasting.api.spell.casting.SpellContinuation;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import org.jetbrains.annotations.Nullable;
 
 public record DelayedCast(CastingHarness harness, SpellContinuation continuation, int delay) {
 	public static final String
@@ -15,14 +15,12 @@ public record DelayedCast(CastingHarness harness, SpellContinuation continuation
 		TAG_HARNESS = "harness",
 		TAG_CONTINUATION = "continuation",
 		TAG_MAIN_HAND = "hand",
-		TAG_DEPTH = "depth",
-		TAG_CIRCLE_CTX = "circle";
+		TAG_DEPTH = "depth";
 
-	public static DelayedCast fromNBT(CompoundTag tag, ServerPlayer owner) {
+	public static DelayedCast fromNBT(CompoundTag tag, ServerPlayer owner, @Nullable SpellCircleContext context) {
 		var hand = tag.getBoolean(TAG_MAIN_HAND) ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
-		var spellCircleCtx = tag.contains(TAG_CIRCLE_CTX, Tag.TAG_COMPOUND) ? SpellCircleContext.fromNBT(tag.getCompound(TAG_CIRCLE_CTX)) : null;
 		var depth = tag.getInt(TAG_DEPTH);
-		var ctx = new CastingContext(owner, hand, spellCircleCtx);
+		var ctx = new CastingContext(owner, hand, context);
 		ctx.setDepth(depth);
 
 		return new DelayedCast(
@@ -35,9 +33,6 @@ public record DelayedCast(CastingHarness harness, SpellContinuation continuation
 	public CompoundTag serializeToNBT() {
 		var tag = new CompoundTag();
 		var ctx = harness.getCtx();
-		var circle = ctx.getSpellCircle();
-		if (circle != null)
-			tag.put(TAG_CIRCLE_CTX, circle.serializeToNBT());
 		tag.putBoolean(TAG_MAIN_HAND, ctx.getCastingHand() == InteractionHand.MAIN_HAND);
 		tag.putInt(TAG_DEPTH, ctx.getDepth());
 		tag.put(TAG_HARNESS, harness.serializeToNBT());
