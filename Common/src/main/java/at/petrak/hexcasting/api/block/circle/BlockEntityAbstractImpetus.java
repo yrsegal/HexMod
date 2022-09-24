@@ -7,9 +7,7 @@ import at.petrak.hexcasting.api.mod.HexConfig;
 import at.petrak.hexcasting.api.player.DelayedCast;
 import at.petrak.hexcasting.api.spell.ParticleSpray;
 import at.petrak.hexcasting.api.spell.SpellDatum;
-import at.petrak.hexcasting.api.spell.casting.CastingContext;
-import at.petrak.hexcasting.api.spell.casting.CastingHarness;
-import at.petrak.hexcasting.api.spell.casting.SpellCircleContext;
+import at.petrak.hexcasting.api.spell.casting.*;
 import at.petrak.hexcasting.api.utils.ManaHelper;
 import at.petrak.hexcasting.common.items.magic.ItemCreativeUnlocker;
 import at.petrak.hexcasting.common.lib.HexItems;
@@ -340,39 +338,40 @@ public abstract class BlockEntityAbstractImpetus extends HexBlockEntity implemen
     private void castSpell() {
         var player = this.getPlayer();
 
-        if (player instanceof ServerPlayer splayer) {
+        if (player instanceof ServerPlayer splayer && level instanceof ServerLevel serverLevel) {
             var bounds = getBounds(this.trackedBlocks);
 
             var ctx = new CastingContext(splayer, InteractionHand.MAIN_HAND,
                 new SpellCircleContext(this.getBlockPos(), bounds, this.activatorAlwaysInRange()));
             var harness = new CastingHarness(ctx);
 
-            var makeSound = false;
-            BlockPos erroredPos = null;
-            for (var tracked : this.trackedBlocks) {
-                var bs = this.level.getBlockState(tracked);
+            SpellContinuation continuation = SpellContinuation.Done.INSTANCE;
+
+            for (int i = trackedBlocks.size() - 1; i >= 0; i--) {
+                BlockPos tracked = trackedBlocks.get(i);
+                var bs = serverLevel.getBlockState(tracked);
                 if (bs.getBlock() instanceof BlockCircleComponent cc) {
                     var newPattern = cc.getPattern(tracked, bs, this.level);
                     if (newPattern != null) {
-                        var info = harness.executeIota(SpellDatum.make(newPattern), splayer.getLevel());
-                        if (info.getMakesCastSound()) {
-                            makeSound = true;
-                        }
-                        if (!info.getResolutionType().getSuccess()) {
-                            erroredPos = tracked;
-                            break;
-                        }
+                        continuation = continuation
+                            .pushFrame(new ContinuationFrame.Evaluate(SpellDatum.make(newPattern)))
+                            .pushFrame(new ContinuationFrame.CircleMishapContext(tracked));
                     }
                 }
             }
 
-            if (makeSound) {
-                this.level.playSound(null, this.getBlockPos(), HexSounds.SPELL_CIRCLE_CAST, SoundSource.BLOCKS,
+            var controllerInfo = harness.executeSpell(continuation, serverLevel);
+
+            if (controllerInfo.getMakesCastSound()) {
+                serverLevel.playSound(null, this.getBlockPos(), HexSounds.SPELL_CIRCLE_CAST, SoundSource.BLOCKS,
                     2f, 1f);
             }
 
-            if (erroredPos != null) {
-                this.sfx(erroredPos, false);
+            if (!controllerInfo.getResolutionType().getSuccess()) {
+                var erroredPos = harness.getCtx().getMishapContextPos();
+                if (erroredPos != null) {
+                    this.sfx(erroredPos, false);
+                }
             } else {
                 this.setLastMishap(null);
             }
@@ -434,7 +433,7 @@ public abstract class BlockEntityAbstractImpetus extends HexBlockEntity implemen
         return null;
     }
 
-    private void sfx(BlockPos pos, boolean success) {
+    public void sfx(BlockPos pos, boolean success) {
         sfx(pos, success, true);
     }
 

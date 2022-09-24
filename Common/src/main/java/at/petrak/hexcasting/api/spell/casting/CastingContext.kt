@@ -31,6 +31,8 @@ data class CastingContext(
 ) {
     constructor(caster: ServerPlayer, castingHand: InteractionHand) : this(caster, castingHand, null)
 
+    var mishapContextPos: BlockPos? = null
+
     var depth: Int = 0
 
     val world: ServerLevel get() = caster.getLevel()

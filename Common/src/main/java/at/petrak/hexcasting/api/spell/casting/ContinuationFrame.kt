@@ -7,7 +7,9 @@ import at.petrak.hexcasting.api.utils.NBTBuilder
 import at.petrak.hexcasting.api.utils.getList
 import at.petrak.hexcasting.api.utils.hasList
 import at.petrak.hexcasting.api.utils.serializeToNBT
+import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.NbtUtils
 import net.minecraft.nbt.Tag
 import net.minecraft.server.level.ServerLevel
 
@@ -48,6 +50,9 @@ sealed interface ContinuationFrame {
      * @property list the *remaining* list of patterns to be evaluated
      */
     data class Evaluate(val list: SpellList) : ContinuationFrame {
+
+        constructor(iota: SpellDatum<*>) : this(SpellList.LList(0, listOf(iota)))
+
         // Discard this frame and keep discarding frames.
         override fun breakDownwards(stack: List<SpellDatum<*>>) = false to stack
 
@@ -101,6 +106,25 @@ sealed interface ContinuationFrame {
 
         override fun serializeToNBT() = NBTBuilder {
             "type" %= "end"
+        }
+    }
+
+    data class CircleMishapContext(val position: BlockPos) : ContinuationFrame {
+        // Discard this frame and keep discarding frames.
+        override fun breakDownwards(stack: List<SpellDatum<*>>) = false to stack
+
+        override fun evaluate(
+            continuation: SpellContinuation,
+            level: ServerLevel,
+            harness: CastingHarness
+        ): CastResult {
+            harness.ctx.mishapContextPos = position
+            return CastResult(continuation, null, ResolvedPatternType.EVALUATED, listOf())
+        }
+
+        override fun serializeToNBT() = NBTBuilder {
+            "type" %= "circle"
+            "pos" %= NbtUtils.writeBlockPos(position)
         }
     }
 
@@ -190,6 +214,7 @@ sealed interface ContinuationFrame {
                     if (tag.hasList("base", Tag.TAG_COMPOUND)) SpellList.fromNBT(tag.getList("base", Tag.TAG_COMPOUND), world).toList() else null,
                     SpellList.fromNBT(tag.getList("accumulator", Tag.TAG_COMPOUND), world).toMutableList()
                 )
+                "circle" -> CircleMishapContext(NbtUtils.readBlockPos(tag.getCompound("pos")))
                 else -> Evaluate(SpellList.LList(0, listOf()))
             }
         }

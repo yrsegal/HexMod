@@ -77,6 +77,8 @@ sealed class OperatorSideEffect {
                 if (tile is BlockEntityAbstractImpetus) {
                     tile.lastMishap = msg
                     tile.setChanged()
+                    if (harness.ctx.mishapContextPos != null)
+                        tile.sfx(harness.ctx.mishapContextPos, false)
                 }
             } else {
                 // for now
